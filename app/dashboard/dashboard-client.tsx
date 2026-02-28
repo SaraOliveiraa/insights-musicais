@@ -116,8 +116,9 @@ function StatCard({
   return (
     <motion.article
       className="glass-card group relative overflow-hidden p-5"
+      style={{ transformPerspective: 1400 }}
       transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 280, damping: 20 }}
-      whileHover={reducedMotion ? undefined : { y: -6 }}
+      whileHover={reducedMotion ? undefined : { y: -10, scale: 1.02, rotateX: 3 }}
     >
       <div className={`absolute inset-x-0 top-0 h-1 ${accent}`} />
       <p className="text-xs uppercase tracking-[0.28em] text-white/45">{label}</p>
@@ -139,9 +140,10 @@ function RankedArtistCard({
       className="group flex items-center gap-4 rounded-[24px] border border-white/8 bg-white/[0.03] p-4 transition-colors hover:border-emerald-300/30 hover:bg-white/[0.05]"
       href={artist.spotifyUrl}
       rel="noreferrer"
+      style={{ transformPerspective: 1400 }}
       target="_blank"
       transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}
-      whileHover={reducedMotion ? undefined : { x: 8 }}
+      whileHover={reducedMotion ? undefined : { x: 8, scale: 1.012, rotateX: 2.5 }}
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/8 font-display text-sm text-white/75">
         {artist.rank.toString().padStart(2, "0")}
@@ -186,9 +188,10 @@ function RankedTrackCard({
       className="group flex items-center gap-4 rounded-[24px] border border-white/8 bg-white/[0.03] p-4 transition-colors hover:border-orange-200/30 hover:bg-white/[0.05]"
       href={track.spotifyUrl}
       rel="noreferrer"
+      style={{ transformPerspective: 1400 }}
       target="_blank"
       transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}
-      whileHover={reducedMotion ? undefined : { x: 8 }}
+      whileHover={reducedMotion ? undefined : { x: 8, scale: 1.012, rotateX: 2.5 }}
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/8 font-display text-sm text-white/75">
         {track.rank.toString().padStart(2, "0")}
@@ -222,19 +225,19 @@ export default function DashboardClient({ data }: DashboardClientProps) {
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="mesh-orb absolute left-[-10%] top-8 h-72 w-72 rounded-full bg-emerald-400/18 blur-3xl" />
-        <div className="mesh-orb absolute right-[-8%] top-24 h-96 w-96 rounded-full bg-orange-300/14 blur-3xl [animation-delay:-6s]" />
-        <div className="mesh-orb absolute bottom-[-12%] left-1/3 h-80 w-80 rounded-full bg-cyan-300/14 blur-3xl [animation-delay:-11s]" />
-      </div>
-
       <motion.div
         animate="visible"
         className="mx-auto flex w-full max-w-7xl flex-col gap-6 pb-10"
         initial="hidden"
         variants={containerVariants}
       >
-        <motion.header className="glass-card relative overflow-hidden p-6 sm:p-8" variants={itemVariants}>
+        <motion.header
+          className="glass-card relative overflow-hidden p-6 sm:p-8"
+          style={{ transformPerspective: 1400 }}
+          transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 220, damping: 22 }}
+          variants={itemVariants}
+          whileHover={reducedMotion ? undefined : { y: -8, scale: 1.006, rotateX: 2.5, rotateY: -1.5 }}
+        >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(124,252,203,0.16),_transparent_32%),radial-gradient(circle_at_left_center,_rgba(251,191,36,0.14),_transparent_26%)]" />
           <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
@@ -256,7 +259,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-4 rounded-[30px] border border-white/10 bg-black/15 p-5 backdrop-blur-xl sm:min-w-[320px]">
+            <div className="subtle-panel flex flex-col gap-4 rounded-[30px] p-5 sm:min-w-[320px]">
               <div className="flex items-center gap-4">
                 <SpotifyArtwork
                   alt={data.profile.name}
@@ -277,11 +280,11 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-sm text-white/60">
-                <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
+                <div className="subtle-panel rounded-[22px] p-4">
                   <span className="block text-[10px] uppercase tracking-[0.28em] text-white/42">Genero dominante</span>
                   <strong className="mt-2 block text-base font-semibold text-white">{data.stats.dominantGenre}</strong>
                 </div>
-                <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
+                <div className="subtle-panel rounded-[22px] p-4">
                   <span className="block text-[10px] uppercase tracking-[0.28em] text-white/42">Duracao media</span>
                   <strong className="mt-2 block text-base font-semibold text-white">
                     {formatDuration(data.stats.averageTrackDuration)}
@@ -339,7 +342,13 @@ export default function DashboardClient({ data }: DashboardClientProps) {
         </motion.section>
 
         <div className="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
-          <motion.section className="glass-card p-6 sm:p-7" variants={itemVariants}>
+          <motion.section
+            className="glass-card p-6 sm:p-7"
+            style={{ transformPerspective: 1400 }}
+            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 220, damping: 22 }}
+            variants={itemVariants}
+            whileHover={reducedMotion ? undefined : { y: -8, scale: 1.008, rotateX: 2.5 }}
+          >
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/45">Top artistas</p>
@@ -358,7 +367,12 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           </motion.section>
 
           <motion.aside className="space-y-6" variants={itemVariants}>
-            <section className="glass-card p-6">
+            <motion.section
+              className="glass-card p-6"
+              style={{ transformPerspective: 1400 }}
+              transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 240, damping: 22 }}
+              whileHover={reducedMotion ? undefined : { y: -8, scale: 1.01, rotateX: 2.5 }}
+            >
               <p className="text-xs uppercase tracking-[0.3em] text-white/45">Leitura rapida</p>
               <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">Seu DNA sonoro</h3>
               <p className="mt-3 text-sm leading-7 text-white/60">
@@ -376,9 +390,14 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                   </span>
                 ))}
               </div>
-            </section>
+            </motion.section>
 
-            <section className="glass-card overflow-hidden p-6">
+            <motion.section
+              className="glass-card overflow-hidden p-6"
+              style={{ transformPerspective: 1400 }}
+              transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 240, damping: 22 }}
+              whileHover={reducedMotion ? undefined : { y: -8, scale: 1.01, rotateX: 2.5 }}
+            >
               <p className="text-xs uppercase tracking-[0.3em] text-white/45">Destaque absoluto</p>
               {data.highlights.topArtist ? (
                 <div className="mt-5 space-y-5">
@@ -402,7 +421,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     </div>
                   </div>
 
-                  <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-4">
+                  <div className="subtle-panel rounded-[26px] p-4">
                     <p className="text-xs uppercase tracking-[0.28em] text-white/42">Leituras de genero</p>
                     <p className="mt-3 text-sm leading-7 text-white/62">
                       {data.highlights.topArtist.genres.slice(0, 3).join(" / ") || "Artista transversal com apelo multiplataforma"}
@@ -412,12 +431,18 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               ) : (
                 <p className="mt-4 text-sm text-white/58">Ainda nao ha dados suficientes para destacar um artista.</p>
               )}
-            </section>
+            </motion.section>
           </motion.aside>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.35fr]">
-          <motion.section className="glass-card p-6 sm:p-7" variants={itemVariants}>
+          <motion.section
+            className="glass-card p-6 sm:p-7"
+            style={{ transformPerspective: 1400 }}
+            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 220, damping: 22 }}
+            variants={itemVariants}
+            whileHover={reducedMotion ? undefined : { y: -8, scale: 1.008, rotateX: 2.5 }}
+          >
             <p className="text-xs uppercase tracking-[0.3em] text-white/45">Faixa assinatura</p>
             <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">A musica que sintetiza sua semana</h3>
 
@@ -441,13 +466,13 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 </div>
 
                 <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-white/60">
-                  <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
+                  <div className="subtle-panel rounded-[22px] p-4">
                     <span className="block text-[10px] uppercase tracking-[0.28em] text-white/42">Popularidade</span>
                     <strong className="mt-2 block text-base font-semibold text-white">
                       {data.highlights.topTrack.popularity}/100
                     </strong>
                   </div>
-                  <div className="rounded-[22px] border border-white/10 bg-white/[0.04] p-4">
+                  <div className="subtle-panel rounded-[22px] p-4">
                     <span className="block text-[10px] uppercase tracking-[0.28em] text-white/42">Duracao</span>
                     <strong className="mt-2 block text-base font-semibold text-white">
                       {formatDuration(data.highlights.topTrack.durationMs)}
@@ -460,7 +485,13 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             )}
           </motion.section>
 
-          <motion.section className="glass-card p-6 sm:p-7" variants={itemVariants}>
+          <motion.section
+            className="glass-card p-6 sm:p-7"
+            style={{ transformPerspective: 1400 }}
+            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 220, damping: 22 }}
+            variants={itemVariants}
+            whileHover={reducedMotion ? undefined : { y: -8, scale: 1.008, rotateX: 2.5 }}
+          >
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/45">Top musicas</p>

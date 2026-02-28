@@ -25,6 +25,24 @@ const proofPoints = [
   "Tailwind CSS v4",
 ];
 
+const capabilityCards = [
+  {
+    title: "Experiencia",
+    value: "Animada",
+    description: "Entrada em camadas, hover com profundidade e leitura fluida em desktop e mobile.",
+  },
+  {
+    title: "Dados",
+    value: "Reais",
+    description: "Nada mockado: artistas, faixas e perfil vem direto do Spotify autenticado.",
+  },
+  {
+    title: "Objetivo",
+    value: "Portfolio",
+    description: "Estrutura pronta para demonstrar design, integracao e criterio de execucao.",
+  },
+];
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -55,19 +73,19 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-        <div className="mesh-orb absolute left-[-8%] top-10 h-72 w-72 rounded-full bg-emerald-400/16 blur-3xl" />
-        <div className="mesh-orb absolute right-[-10%] top-24 h-[28rem] w-[28rem] rounded-full bg-orange-200/12 blur-3xl [animation-delay:-7s]" />
-        <div className="mesh-orb absolute bottom-[-16%] left-1/2 h-80 w-80 rounded-full bg-cyan-300/12 blur-3xl [animation-delay:-12s]" />
-      </div>
-
       <motion.div
         animate="visible"
         className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-7xl flex-col gap-6"
         initial="hidden"
         variants={containerVariants}
       >
-        <motion.header className="glass-card flex items-center justify-between gap-4 px-5 py-4 sm:px-6" variants={itemVariants}>
+        <motion.header
+          className="glass-card flex items-center justify-between gap-4 px-5 py-4 sm:px-6"
+          style={{ transformPerspective: 1400 }}
+          transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}
+          variants={itemVariants}
+          whileHover={reducedMotion ? undefined : { y: -6, scale: 1.01, rotateX: 2 }}
+        >
           <div>
             <p className="text-xs uppercase tracking-[0.32em] text-white/42">Portfolio project</p>
             <h1 className="mt-2 font-display text-xl tracking-[-0.06em] text-white sm:text-2xl">Insights Musicais</h1>
@@ -76,7 +94,13 @@ export default function HomePage() {
         </motion.header>
 
         <div className="grid flex-1 gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <motion.section className="glass-card relative overflow-hidden p-7 sm:p-10" variants={itemVariants}>
+          <motion.section
+            className="glass-card relative overflow-hidden p-7 sm:p-10"
+            style={{ transformPerspective: 1400 }}
+            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 220, damping: 22 }}
+            variants={itemVariants}
+            whileHover={reducedMotion ? undefined : { y: -8, scale: 1.008, rotateX: 2.5, rotateY: -1.5 }}
+          >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(124,252,203,0.16),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(251,191,36,0.12),_transparent_25%)]" />
             <div className="relative">
               <div className="flex flex-wrap gap-3">
@@ -92,7 +116,7 @@ export default function HomePage() {
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/64 sm:text-lg">
-                Autenticacao OAuth 2.0 com Spotify, integracao direta com a Web API e uma interface criada para impressionar recrutadores com leitura clara, movimento e identidade propria.
+                Projeto construido para demonstrar criterio de execucao, design e integracao com API real. Nao se trata de um clone, mas de um dashboard inspirado no universo Spotify.
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -111,21 +135,19 @@ export default function HomePage() {
               </div>
 
               <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-5">
-                  <p className="text-xs uppercase tracking-[0.28em] text-white/42">Experiencia</p>
-                  <strong className="mt-3 block font-display text-3xl tracking-[-0.06em] text-white">Animada</strong>
-                  <p className="mt-2 text-sm text-white/56">Entrada em camadas, hover sutil e leitura fluida em desktop e mobile.</p>
-                </div>
-                <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-5">
-                  <p className="text-xs uppercase tracking-[0.28em] text-white/42">Dados</p>
-                  <strong className="mt-3 block font-display text-3xl tracking-[-0.06em] text-white">Reais</strong>
-                  <p className="mt-2 text-sm text-white/56">Nada mockado: artistas, faixas e perfil vem direto do Spotify autenticado.</p>
-                </div>
-                <div className="rounded-[26px] border border-white/10 bg-white/[0.04] p-5">
-                  <p className="text-xs uppercase tracking-[0.28em] text-white/42">Objetivo</p>
-                  <strong className="mt-3 block font-display text-3xl tracking-[-0.06em] text-white">Portfolio</strong>
-                  <p className="mt-2 text-sm text-white/56">Estrutura pronta para demonstrar design, integracao e criterio de execucao.</p>
-                </div>
+                {capabilityCards.map((card) => (
+                  <motion.div
+                    className="subtle-panel rounded-[26px] p-5"
+                    key={card.title}
+                    style={{ transformPerspective: 1400 }}
+                    transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 280, damping: 22 }}
+                    whileHover={reducedMotion ? undefined : { y: -10, scale: 1.025, rotateX: 3 }}
+                  >
+                    <p className="text-xs uppercase tracking-[0.28em] text-white/42">{card.title}</p>
+                    <strong className="mt-3 block font-display text-3xl tracking-[-0.06em] text-white">{card.value}</strong>
+                    <p className="mt-2 text-sm text-white/56">{card.description}</p>
+                  </motion.div>
+                ))}
               </div>
             </div>
           </motion.section>
@@ -135,8 +157,9 @@ export default function HomePage() {
               <motion.article
                 className="glass-card flex flex-col justify-between p-6"
                 key={card.title}
+                style={{ transformPerspective: 1400 }}
                 transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}
-                whileHover={reducedMotion ? undefined : { y: -6 }}
+                whileHover={reducedMotion ? undefined : { y: -10, scale: 1.02, rotateX: 3, rotateY: -2 }}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs uppercase tracking-[0.28em] text-white/42">0{index + 1}</span>
