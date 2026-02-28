@@ -5,41 +5,41 @@ import { motion, useReducedMotion } from "framer-motion";
 
 const featureCards = [
   {
-    title: "OAuth 2.0 sem friccao",
-    description: "Fluxo de autenticacao com Spotify para transformar login em acesso imediato aos dados reais do usuario.",
+    title: "Tudo em um so lugar",
+    description: "Veja artistas, musicas e generos favoritos em uma leitura clara, organizada e facil de explorar.",
   },
   {
-    title: "Leitura visual premium",
-    description: "Cards, hierarquia tipografica e contraste forte para parecer produto pronto, nao projeto academico.",
+    title: "Seu momento musical",
+    description: "Entenda o que dominou seus ultimos dias com destaques, sinais de repeticao e tendencias pessoais.",
   },
   {
-    title: "Insights orientados a repertorio",
-    description: "Artistas, musicas, generos e sinais de comportamento apresentados como narrativa de consumo.",
+    title: "Feito para explorar",
+    description: "Navegue pelos seus habitos de escuta com uma interface leve, responsiva e pensada para uso recorrente.",
   },
 ];
 
 const proofPoints = [
-  "Next.js App Router",
-  "Spotify Web API",
-  "Framer Motion",
-  "Tailwind CSS v4",
+  "Top artistas",
+  "Top faixas",
+  "Generos em alta",
+  "Resumo pessoal",
 ];
 
 const capabilityCards = [
   {
-    title: "Experiencia",
-    value: "Animada",
-    description: "Entrada em camadas, hover com profundidade e leitura fluida em desktop e mobile.",
+    title: "Visao geral",
+    value: "Rapida",
+    description: "Abra o painel e entenda em segundos o que mais marcou sua escuta recente.",
   },
   {
-    title: "Dados",
-    value: "Reais",
-    description: "Nada mockado: artistas, faixas e perfil vem direto do Spotify autenticado.",
+    title: "Tendencias",
+    value: "Pessoais",
+    description: "Acompanhe artistas, faixas e generos que mais aparecem no seu replay.",
   },
   {
-    title: "Objetivo",
-    value: "Portfolio",
-    description: "Estrutura pronta para demonstrar design, integracao e criterio de execucao.",
+    title: "Conta",
+    value: "Segura",
+    description: "Conecte sua conta do Spotify para ver seus dados com praticidade e controle.",
   },
 ];
 
@@ -87,10 +87,10 @@ export default function HomePage() {
           whileHover={reducedMotion ? undefined : { y: -6, scale: 1.01, rotateX: 2 }}
         >
           <div>
-            <p className="text-xs uppercase tracking-[0.32em] text-white/42">Portfolio project</p>
+            <p className="text-xs uppercase tracking-[0.32em] text-white/42">Experiencia musical pessoal</p>
             <h1 className="mt-2 font-display text-xl tracking-[-0.06em] text-white sm:text-2xl">Insights Musicais</h1>
           </div>
-          <span className="hero-chip">Spotify dashboard</span>
+          <span className="hero-chip">Conectado ao Spotify</span>
         </motion.header>
 
         <div className="grid flex-1 gap-6 lg:grid-cols-[1.2fr_0.8fr]">
@@ -112,11 +112,11 @@ export default function HomePage() {
               </div>
 
               <h2 className="mt-8 max-w-4xl font-display text-5xl tracking-[-0.09em] text-white sm:text-6xl lg:text-7xl">
-                Dashboard em Next.js para traduzir habitos musicais em percepcao de produto.
+                Entenda o que define seu momento musical.
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/64 sm:text-lg">
-                Projeto construido para demonstrar criterio de execucao, design e integracao com API real. Nao se trata de um clone, mas de um dashboard inspirado no universo Spotify.
+                Conecte sua conta do Spotify e acompanhe artistas, faixas e generos que mais aparecem na sua rotina com um painel claro, rapido e agradavel de usar.
               </p>
 
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -124,13 +124,13 @@ export default function HomePage() {
                   className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-100"
                   href="/api/auth/login"
                 >
-                  Entrar com Spotify
+                  Conectar Spotify
                 </Link>
                 <Link
                   className="inline-flex items-center justify-center rounded-full border border-white/14 bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white transition hover:border-white/28 hover:bg-white/[0.08]"
                   href="/dashboard"
                 >
-                  Abrir dashboard
+                  Ver painel
                 </Link>
               </div>
 

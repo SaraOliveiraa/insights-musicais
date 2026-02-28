@@ -220,7 +220,7 @@ function RankedTrackCard({
 export default function DashboardClient({ data }: DashboardClientProps) {
   const reducedMotion = useReducedMotion() ?? false;
   const heroMessage = data.highlights.topArtist
-    ? `${data.profile.name}, seu universo gira em torno de ${data.highlights.topArtist.name}.`
+    ? `${data.profile.name}, ${data.highlights.topArtist.name} lidera sua fase atual.`
     : `${data.profile.name}, seu perfil musical esta pronto para ser explorado.`;
 
   return (
@@ -242,20 +242,20 @@ export default function DashboardClient({ data }: DashboardClientProps) {
           <div className="relative flex flex-col gap-8 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="hero-chip">Spotify Intelligence</span>
+                <span className="hero-chip">Seu Spotify</span>
                 <span className="hero-chip hero-chip--warm">Ultimos 30 dias</span>
               </div>
               <h1 className="mt-6 font-display text-4xl tracking-[-0.08em] text-white sm:text-5xl lg:text-6xl">
-                Seu comportamento musical, transformado em narrativa visual.
+                Seu momento musical em uma unica tela.
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-white/65 sm:text-lg">
-                {heroMessage} 
+                {heroMessage} Veja os destaques que mais marcaram sua escuta recente e navegue pelos artistas, faixas e generos que definem sua rotina.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3 text-sm text-white/70">
                 <span className="hero-chip">{capitalize(data.profile.plan)} plan</span>
                 <span className="hero-chip">Mercado {data.profile.country}</span>
-                <span className="hero-chip">{formatNumber(data.favoriteGenres.length)} clusters de genero</span>
+                <span className="hero-chip">{formatNumber(data.favoriteGenres.length)} generos mapeados</span>
               </div>
             </div>
 
@@ -296,7 +296,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                 className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-100"
                 href="/api/auth/logout"
               >
-                Encerrar sessao
+                Desconectar
               </a>
               <a
                 className="text-center text-sm text-white/58 transition hover:text-white"
@@ -352,7 +352,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/45">Top artistas</p>
-                <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">Quem define sua fase atual</h3>
+                <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">Quem esta guiando sua escuta</h3>
               </div>
               <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/48">
                 {data.artists.length} artistas
@@ -373,10 +373,10 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 240, damping: 22 }}
               whileHover={reducedMotion ? undefined : { y: -8, scale: 1.01, rotateX: 2.5 }}
             >
-              <p className="text-xs uppercase tracking-[0.3em] text-white/45">Leitura rapida</p>
-              <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">Seu DNA sonoro</h3>
+              <p className="text-xs uppercase tracking-[0.3em] text-white/45">Visao geral</p>
+              <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">Seu mapa musical</h3>
               <p className="mt-3 text-sm leading-7 text-white/60">
-                O recorte atual mistura energia de pista, pop de alto alcance e nichos mais identitarios. A distribuicao de generos mostra um perfil com repertorio amplo, mas ainda coerente.
+                Aqui voce enxerga os generos que mais aparecem no seu replay recente. Isso ajuda a perceber se sua fase esta mais focada, diversa ou mudando ao longo do tempo.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-2">
@@ -398,7 +398,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
               transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 240, damping: 22 }}
               whileHover={reducedMotion ? undefined : { y: -8, scale: 1.01, rotateX: 2.5 }}
             >
-              <p className="text-xs uppercase tracking-[0.3em] text-white/45">Destaque absoluto</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-white/45">Artista em destaque</p>
               {data.highlights.topArtist ? (
                 <div className="mt-5 space-y-5">
                   <div className="flex items-center gap-4">
@@ -443,8 +443,8 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             variants={itemVariants}
             whileHover={reducedMotion ? undefined : { y: -8, scale: 1.008, rotateX: 2.5 }}
           >
-            <p className="text-xs uppercase tracking-[0.3em] text-white/45">Faixa assinatura</p>
-            <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">A musica que sintetiza sua semana</h3>
+            <p className="text-xs uppercase tracking-[0.3em] text-white/45">Faixa do momento</p>
+            <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">A musica que mais representa sua fase atual</h3>
 
             {data.highlights.topTrack ? (
               <div className="mt-6">
@@ -495,7 +495,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-white/45">Top musicas</p>
-                <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">O que esta em loop agora</h3>
+                <h3 className="mt-3 font-display text-3xl tracking-[-0.06em] text-white">O que mais voltou para o replay</h3>
               </div>
               <span className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-xs uppercase tracking-[0.22em] text-white/48">
                 {data.tracks.length} faixas
