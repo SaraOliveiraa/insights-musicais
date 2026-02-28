@@ -10,9 +10,6 @@ export type DashboardData = {
   stats: {
     dominantGenre: string;
     genreCount: number;
-    trackPopularity: number;
-    artistPopularity: number;
-    totalArtistReach: number;
     averageTrackDuration: number;
   };
   highlights: {

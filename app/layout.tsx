@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { DM_Sans, Geist_Mono, Space_Grotesk } from "next/font/google";
-import AuroraBackground from "./aurora-background";
-import GlowCursor from "./glow-cursor";
 import "./globals.css";
 
 const bodyFont = DM_Sans({
@@ -34,11 +32,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
-      <body className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} relative isolate antialiased`}>
-        <AuroraBackground />
-        <GlowCursor />
-        <div className="relative z-10">{children}</div>
+    <html className="dark" lang="pt-BR">
+      <body className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} antialiased`}>
+        {children}
       </body>
     </html>
   );

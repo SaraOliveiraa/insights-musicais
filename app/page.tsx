@@ -1,45 +1,68 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { ArrowRight, BarChart3, Disc3, LayoutDashboard, ListMusic, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const featureCards = [
+const heroHighlights = [
   {
-    title: "Tudo em um so lugar",
-    description: "Veja artistas, musicas e generos favoritos em uma leitura clara, organizada e facil de explorar.",
+    title: "Visao geral imediata",
+    description: "Abra o painel e veja em segundos o que dominou sua escuta recente.",
+    icon: LayoutDashboard,
   },
   {
-    title: "Seu momento musical",
-    description: "Entenda o que dominou seus ultimos dias com destaques, sinais de repeticao e tendencias pessoais.",
+    title: "Listas organizadas",
+    description: "Artistas e faixas aparecem em blocos alinhados, simples de comparar e navegar.",
+    icon: ListMusic,
   },
   {
-    title: "Feito para explorar",
-    description: "Navegue pelos seus habitos de escuta com uma interface leve, responsiva e pensada para uso recorrente.",
+    title: "Conta conectada",
+    description: "Acesse seus dados do Spotify de forma segura e com leitura clara.",
+    icon: ShieldCheck,
   },
 ];
 
-const proofPoints = [
-  "Top artistas",
-  "Top faixas",
-  "Generos em alta",
-  "Resumo pessoal",
+const insightItems = [
+  {
+    title: "Top artistas",
+    description: "Veja quem mais apareceu na sua fase atual.",
+    icon: UserRound,
+  },
+  {
+    title: "Top faixas",
+    description: "Entenda o que mais voltou para o replay.",
+    icon: Disc3,
+  },
+  {
+    title: "Generos em destaque",
+    description: "Perceba se sua escuta esta mais focada ou diversa.",
+    icon: Sparkles,
+  },
+  {
+    title: "Resumo pessoal",
+    description: "Tenha uma leitura direta do seu momento musical.",
+    icon: BarChart3,
+  },
 ];
 
-const capabilityCards = [
+const onboardingSteps = [
   {
-    title: "Visao geral",
-    value: "Rapida",
-    description: "Abra o painel e entenda em segundos o que mais marcou sua escuta recente.",
+    step: "01",
+    title: "Conecte sua conta",
+    description: "Entre com o Spotify para liberar seus dados de escuta.",
   },
   {
-    title: "Tendencias",
-    value: "Pessoais",
-    description: "Acompanhe artistas, faixas e generos que mais aparecem no seu replay.",
+    step: "02",
+    title: "Abra o painel",
+    description: "Acesse uma grade organizada com artistas, faixas e generos.",
   },
   {
-    title: "Conta",
-    value: "Segura",
-    description: "Conecte sua conta do Spotify para ver seus dados com praticidade e controle.",
+    step: "03",
+    title: "Explore sua rotina",
+    description: "Descubra o que define sua fase musical com mais contexto.",
   },
 ];
 
@@ -48,8 +71,8 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.08,
+      staggerChildren: 0.08,
+      delayChildren: 0.06,
     },
   },
 };
@@ -57,122 +80,144 @@ const containerVariants = {
 const smoothEase = [0.22, 1, 0.36, 1] as const;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 0, y: 18 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.65,
+      duration: 0.45,
       ease: smoothEase,
     },
   },
 };
 
+const surfaceCardClass = "rounded-xl border-white/10 bg-[#0d1420]/88 shadow-[0_14px_34px_rgba(2,6,23,0.24)] backdrop-blur-sm";
+
+const subtlePanelClass = "rounded-lg border border-white/8 bg-white/[0.03]";
+
 export default function HomePage() {
-  const reducedMotion = useReducedMotion() ?? false;
-
   return (
-    <main className="relative min-h-screen overflow-hidden px-4 py-5 sm:px-6 lg:px-8">
-      <motion.div
-        animate="visible"
-        className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-7xl flex-col gap-6"
-        initial="hidden"
-        variants={containerVariants}
-      >
-        <motion.header
-          className="glass-card flex items-center justify-between gap-4 px-5 py-4 sm:px-6"
-          style={{ transformPerspective: 1400 }}
-          transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}
-          variants={itemVariants}
-          whileHover={reducedMotion ? undefined : { y: -6, scale: 1.01, rotateX: 2 }}
-        >
-          <div>
-            <p className="text-xs uppercase tracking-[0.32em] text-white/42">Experiencia musical pessoal</p>
-            <h1 className="mt-2 font-display text-xl tracking-[-0.06em] text-white sm:text-2xl">Insights Musicais</h1>
-          </div>
-          <span className="hero-chip">Conectado ao Spotify</span>
-        </motion.header>
+    <main className="min-h-screen px-4 py-4 sm:px-6 lg:px-8">
+      <motion.div animate="visible" className="mx-auto flex max-w-7xl flex-col gap-4" initial="hidden" variants={containerVariants}>
+      
 
-        <div className="grid flex-1 gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <motion.section
-            className="glass-card relative overflow-hidden p-7 sm:p-10"
-            style={{ transformPerspective: 1400 }}
-            transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 220, damping: 22 }}
-            variants={itemVariants}
-            whileHover={reducedMotion ? undefined : { y: -8, scale: 1.008, rotateX: 2.5, rotateY: -1.5 }}
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(124,252,203,0.16),_transparent_30%),radial-gradient(circle_at_bottom_right,_rgba(251,191,36,0.12),_transparent_25%)]" />
-            <div className="relative">
-              <div className="flex flex-wrap gap-3">
-                {proofPoints.map((point) => (
-                  <span className="hero-chip" key={point}>
-                    {point}
-                  </span>
-                ))}
-              </div>
+        <div className="grid gap-4 lg:grid-cols-12">
+          <motion.section className="lg:col-span-7" variants={itemVariants}>
+            <Card className={`${surfaceCardClass} h-full`}>
+              <CardHeader className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
+                    Top artistas
+                  </Badge>
+                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
+                    Top faixas
+                  </Badge>
+                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
+                    Generos em alta
+                  </Badge>
+                </div>
+                <div className="space-y-4">
+                  <CardTitle className="font-display text-4xl leading-tight tracking-[-0.04em] text-white sm:text-5xl">Seu Spotify, organizado em um painel que faz sentido.</CardTitle>
+                  <CardDescription className="max-w-2xl text-base leading-8 text-white/64">
+                    Conecte sua conta e acompanhe artistas, faixas e generos que mais aparecem na sua rotina com uma interface mais alinhada, clara e preparada para uso continuo.
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Button asChild className="h-10 rounded-lg bg-emerald-400 px-5 text-slate-950 hover:bg-emerald-300">
+                    <Link href="/api/auth/login">
+                      Conectar Spotify
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild className="h-10 rounded-lg border-white/10 bg-white/[0.03] px-5 text-white hover:bg-white/[0.06]" variant="outline">
+                    <Link href="/dashboard">Ver painel</Link>
+                  </Button>
+                </div>
 
-              <h2 className="mt-8 max-w-4xl font-display text-5xl tracking-[-0.09em] text-white sm:text-6xl lg:text-7xl">
-                Entenda o que define seu momento musical.
-              </h2>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {heroHighlights.map((item) => {
+                    const Icon = item.icon;
 
-              <p className="mt-6 max-w-2xl text-base leading-8 text-white/64 sm:text-lg">
-                Conecte sua conta do Spotify e acompanhe artistas, faixas e generos que mais aparecem na sua rotina com um painel claro, rapido e agradavel de usar.
-              </p>
-
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-100"
-                  href="/api/auth/login"
-                >
-                  Conectar Spotify
-                </Link>
-                <Link
-                  className="inline-flex items-center justify-center rounded-full border border-white/14 bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white transition hover:border-white/28 hover:bg-white/[0.08]"
-                  href="/dashboard"
-                >
-                  Ver painel
-                </Link>
-              </div>
-
-              <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                {capabilityCards.map((card) => (
-                  <motion.div
-                    className="subtle-panel rounded-[26px] p-5"
-                    key={card.title}
-                    style={{ transformPerspective: 1400 }}
-                    transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 280, damping: 22 }}
-                    whileHover={reducedMotion ? undefined : { y: -10, scale: 1.025, rotateX: 3 }}
-                  >
-                    <p className="text-xs uppercase tracking-[0.28em] text-white/42">{card.title}</p>
-                    <strong className="mt-3 block font-display text-3xl tracking-[-0.06em] text-white">{card.value}</strong>
-                    <p className="mt-2 text-sm text-white/56">{card.description}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+                    return (
+                      <div className={`${subtlePanelClass} p-4`} key={item.title}>
+                        <div className="mb-4 inline-flex rounded-lg border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
+                          <Icon className="size-4" />
+                        </div>
+                        <h3 className="font-medium text-white">{item.title}</h3>
+                        <p className="mt-2 text-sm leading-6 text-white/58">{item.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           </motion.section>
 
-          <motion.aside className="grid gap-4" variants={itemVariants}>
-            {featureCards.map((card, index) => (
-              <motion.article
-                className="glass-card flex flex-col justify-between p-6"
-                key={card.title}
-                style={{ transformPerspective: 1400 }}
-                transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 20 }}
-                whileHover={reducedMotion ? undefined : { y: -10, scale: 1.02, rotateX: 3, rotateY: -2 }}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-[0.28em] text-white/42">0{index + 1}</span>
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-300 shadow-[0_0_18px_rgba(110,231,183,0.8)]" />
-                </div>
-                <div className="mt-8">
-                  <h3 className="font-display text-3xl tracking-[-0.06em] text-white">{card.title}</h3>
-                  <p className="mt-4 text-sm leading-7 text-white/60">{card.description}</p>
-                </div>
-              </motion.article>
-            ))}
-          </motion.aside>
+          <div className="grid gap-4 lg:col-span-5 lg:auto-rows-fr">
+            <motion.section variants={itemVariants}>
+              <Card className={`${surfaceCardClass} h-full`}>
+                <CardHeader>
+                  <CardTitle className="font-display text-2xl text-white">O que voce encontra</CardTitle>
+                  <CardDescription className="text-white/60">Um painel direto para acompanhar sua fase musical sem excesso de informacao.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3">
+                  {insightItems.map((item) => {
+                    const Icon = item.icon;
+
+                    return (
+                      <div className={`${subtlePanelClass} flex items-start gap-3 p-4`} key={item.title}>
+                        <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-cyan-300">
+                          <Icon className="size-4" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-white">{item.title}</h3>
+                          <p className="mt-1 text-sm leading-6 text-white/56">{item.description}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            </motion.section>
+
+            <motion.section variants={itemVariants}>
+              <Card className={`${surfaceCardClass} h-full`}>
+                <CardHeader>
+                  <CardTitle className="font-display text-2xl text-white">Como funciona</CardTitle>
+                  <CardDescription className="text-white/60">Uma experiencia simples para entrar, ver seus dados e explorar sua rotina de escuta.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3">
+                  {onboardingSteps.map((item) => (
+                    <div className={`${subtlePanelClass} flex gap-4 p-4`} key={item.step}>
+                      <div className="font-display text-lg text-white/42">{item.step}</div>
+                      <div>
+                        <h3 className="text-sm font-medium text-white">{item.title}</h3>
+                        <p className="mt-1 text-sm leading-6 text-white/56">{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.section>
+          </div>
         </div>
+
+        <motion.section variants={itemVariants}>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {["Layout mais limpo para leitura rapida", "Componentes alinhados para desktop e mobile", "Dados reais do Spotify em uma experiencia organizada"].map((text, index) => (
+              <Card className={surfaceCardClass} key={text}>
+                <CardContent className="flex h-full items-center gap-3 px-5 py-5">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
+                    {index === 0 ? <LayoutDashboard className="size-4" /> : index === 1 ? <Sparkles className="size-4" /> : <BarChart3 className="size-4" />}
+                  </div>
+                  <p className="text-sm leading-6 text-white/66">{text}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </motion.section>
       </motion.div>
     </main>
   );

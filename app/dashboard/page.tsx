@@ -148,18 +148,6 @@ function buildDashboardData(
     .slice(0, 8)
     .map(([name, count]) => ({ name, count }));
 
-  const trackPopularityAverage =
-    tracks.length > 0
-      ? Math.round(tracks.reduce((total, track) => total + track.popularity, 0) / tracks.length)
-      : 0;
-
-  const artistPopularityAverage =
-    artists.length > 0
-      ? Math.round(artists.reduce((total, artist) => total + artist.popularity, 0) / artists.length)
-      : 0;
-
-  const totalArtistReach = artists.reduce((total, artist) => total + artist.followers, 0);
-
   const averageTrackDuration =
     tracks.length > 0
       ? Math.round(tracks.reduce((total, track) => total + track.durationMs, 0) / tracks.length)
@@ -177,9 +165,6 @@ function buildDashboardData(
     stats: {
       dominantGenre: favoriteGenres[0]?.name ?? "ecletico",
       genreCount: favoriteGenresMap.size,
-      trackPopularity: trackPopularityAverage,
-      artistPopularity: artistPopularityAverage,
-      totalArtistReach,
       averageTrackDuration,
     },
     highlights: {
