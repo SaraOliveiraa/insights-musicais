@@ -1,56 +1,71 @@
-export type DashboardData = {
-  profile: {
-    name: string;
-    avatarUrl: string | null;
-    followers: number;
-    country: string;
-    plan: string;
-    spotifyUrl: string;
-  };
-  stats: {
-    dominantGenre: string;
-    genreCount: number;
-    averageTrackDuration: number;
-  };
-  highlights: {
-    topArtist: {
-      name: string;
-      imageUrl: string | null;
-      followers: number;
-      genres: string[];
-    } | null;
-    topTrack: {
-      name: string;
-      imageUrl: string | null;
-      artistName: string;
-      album: string;
-      popularity: number;
-      durationMs: number;
-    } | null;
-  };
-  favoriteGenres: Array<{
-    name: string;
-    count: number;
-  }>;
-  artists: Array<{
+import type { DashboardArtist, DashboardData, DashboardTrack, TimeRange } from "@/lib/spotify-schema";
+
+export type ModuleKey = "overview" | "now" | "top" | "dna" | "playlists" | "recommendations" | "discovery";
+
+export type ModuleStateStatus = "idle" | "loading" | "ready" | "error";
+
+export type ModuleState<T> = {
+  status: ModuleStateStatus;
+  data: T | null;
+  error: string | null;
+};
+
+export type OverviewData = {
+  fetchedAt: string;
+  profile: DashboardData["profile"];
+  devices: Array<{
     id: string;
-    rank: number;
     name: string;
-    imageUrl: string | null;
-    genres: string[];
-    followers: number;
-    popularity: number;
-    spotifyUrl: string;
+    type: string;
+    isActive: boolean;
+    isRestricted: boolean;
+    supportsVolume: boolean;
+    volumePercent: number;
   }>;
-  tracks: Array<{
-    id: string;
-    rank: number;
-    name: string;
-    artistNames: string;
-    imageUrl: string | null;
-    album: string;
-    popularity: number;
-    durationMs: number;
-    spotifyUrl: string;
+  player: {
+    hasActiveSession: boolean;
+    deviceName: string | null;
+    isPlaying: boolean;
+    repeatState: string;
+    shuffleState: boolean;
+    progressMs: number | null;
+  };
+};
+
+export type ModuleTrack = Omit<DashboardTrack, "rank"> & {
+  previewUrl: string | null;
+};
+
+export type NowData = {
+  fetchedAt: string;
+  current: {
+    track: ModuleTrack | null;
+    isPlaying: boolean;
+    progressMs: number | null;
+    repeatState: string;
+    shuffleState: boolean;
+    deviceName: string | null;
+    volumePercent: number | null;
+    playingType: string;
+  } | null;
+  player: {
+    isPlaying: boolean;
+    deviceName: string | null;
+    volumePercent: number | null;
+    repeatState: string;
+    shuffleState: boolean;
+    progressMs: number | null;
+  };
+  recent: Array<{
+    playedAt: string | null;
+    track: ModuleTrack;
   }>;
+};
+
+export type TopData = {
+  fetchedAt: string;
+  range: TimeRange;
+  limit: number;
+  artists: DashboardArtist[];
+  tracks: DashboardTrack[];
 };

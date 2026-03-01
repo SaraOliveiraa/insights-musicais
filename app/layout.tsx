@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Insights Musicais",
   },
   description:
-    "Dashboard em Next.js com OAuth 2.0, Spotify Web API e visualizacoes modernas para explorar habitos musicais.",
+    "Plataforma modular para Spotify com overview leve, now playing em tempo real e modulos de descoberta acionados sob demanda.",
 };
 
 export default function RootLayout({

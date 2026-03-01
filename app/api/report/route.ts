@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SpotifyAuthError, SpotifyRequestError } from "@/lib/spotify-server";
+import { parseTimeRange } from "@/lib/spotify-insights";
+import { getDashboardData, SpotifyAuthError, SpotifyRequestError } from "@/lib/spotify-server";
 
 export async function GET(req: NextRequest) {
   const token = req.cookies.get("sp_access_token")?.value;
@@ -8,24 +9,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const range = parseTimeRange(req.nextUrl.searchParams.get("range"));
+
   try {
-    const response = await fetch("https://api.spotify.com/v1/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-    });
-
-    if (response.status === 401) {
-      throw new SpotifyAuthError();
-    }
-
-    if (!response.ok) {
-      const details = await response.text().catch(() => "");
-      throw new SpotifyRequestError("/me", response.status, details);
-    }
-
-    const data = await response.json();
+    const data = await getDashboardData(token, range);
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     if (error instanceof SpotifyAuthError) {

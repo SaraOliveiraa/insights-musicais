@@ -1,35 +1,33 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
-  ChevronDown,
-  Clock3,
-  Disc3,
-  ExternalLink,
-  Globe2,
-  LayoutGrid,
+  AudioWaveform,
+  BarChart3,
+  Compass,
+  LayoutPanelLeft,
+  ListMusic,
+  LoaderCircle,
   LogOut,
-  Music2,
+  Radio,
+  RefreshCw,
   Sparkles,
-  Users,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { DashboardData } from "./types";
+import { subtlePanelClass, surfaceCardClass } from "@/app/dashboard/module-ui";
+import { NowModule } from "@/app/dashboard/modules/now-module";
+import { OverviewModule } from "@/app/dashboard/modules/overview-module";
+import { TopModule } from "@/app/dashboard/modules/top-module";
+import type { ModuleKey, ModuleState, NowData, OverviewData, TopData } from "@/app/dashboard/types";
+import type { TimeRange } from "@/lib/spotify-schema";
 
 type DashboardClientProps = {
-  data: DashboardData;
+  initialRange: TimeRange;
 };
 
 const containerVariants = {
@@ -37,7 +35,7 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.06,
+      staggerChildren: 0.05,
       delayChildren: 0.04,
     },
   },
@@ -57,555 +55,529 @@ const itemVariants = {
   },
 };
 
-const surfaceCardClass =
-  "rounded-xl border-white/10 bg-[#0d1420]/88 shadow-[0_14px_34px_rgba(2,6,23,0.24)] backdrop-blur-sm";
-
-const contentCardClass = `${surfaceCardClass} gap-0 overflow-hidden py-0`;
-const subtlePanelClass = "rounded-lg border border-white/8 bg-white/[0.03]";
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("pt-BR").format(value);
+function createModuleState<T>(): ModuleState<T> {
+  return {
+    status: "idle",
+    data: null,
+    error: null,
+  };
 }
 
-function formatDuration(durationMs: number) {
-  const totalMinutes = Math.round(durationMs / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-
-  if (hours === 0) {
-    return `${minutes} min`;
-  }
-
-  return `${hours}h ${minutes.toString().padStart(2, "0")}min`;
-}
-
-function capitalize(value: string) {
-  if (!value) return value;
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function SpotifyArtwork({
-  src,
-  alt,
-  fallback,
-  className,
-  height = 120,
-  sizes,
-  width = 120,
-}: {
-  src: string | null;
-  alt: string;
-  fallback: string;
-  className?: string;
-  height?: number;
-  sizes?: string;
-  width?: number;
-}) {
-  if (!src) {
-    return (
-      <div
-        className={`flex items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-sm font-semibold uppercase tracking-[0.24em] text-white/55 ${className ?? ""}`}
-      >
-        {fallback}
-      </div>
-    );
-  }
-
-  return (
-    <Image
-      alt={alt}
-      className={`rounded-lg object-cover ${className ?? ""}`}
-      height={height}
-      sizes={sizes}
-      src={src}
-      width={width}
-    />
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
+const MODULE_CARDS: Array<{
+  key: ModuleKey;
+  title: string;
+  description: string;
+  status: "live" | "roadmap";
   icon: LucideIcon;
-  label: string;
-  value: string;
-  hint: string;
+}> = [
+  {
+    key: "overview",
+    title: "Perfil & Contexto",
+    description: "Conta, pais, plano, devices e status do player logo de cara.",
+    status: "live",
+    icon: LayoutPanelLeft,
+  },
+  {
+    key: "now",
+    title: "Agora",
+    description: "Now playing, estado do player e ultimas 20 reproducoes.",
+    status: "live",
+    icon: Radio,
+  },
+  {
+    key: "top",
+    title: "Top",
+    description: "Top artists e top tracks com cache por periodo.",
+    status: "live",
+    icon: BarChart3,
+  },
+  {
+    key: "dna",
+    title: "DNA Sonoro",
+    description: "Audio features em lote e analysis sob demanda.",
+    status: "roadmap",
+    icon: AudioWaveform,
+  },
+  {
+    key: "playlists",
+    title: "Playlists",
+    description: "Curadoria, criacao automatica e embed pronto para ouvir.",
+    status: "roadmap",
+    icon: ListMusic,
+  },
+  {
+    key: "recommendations",
+    title: "Recomendacoes",
+    description: "Seeds com top + recent para sugerir novas faixas.",
+    status: "roadmap",
+    icon: Sparkles,
+  },
+  {
+    key: "discovery",
+    title: "Descoberta",
+    description: "Busca, detalhe de artista, top tracks e albuns.",
+    status: "roadmap",
+    icon: Compass,
+  },
+];
+
+const ROADMAP_COPY: Record<
+  Exclude<ModuleKey, "overview" | "now" | "top">,
+  {
+    badge: string;
+    title: string;
+    description: string;
+    endpoints: string[];
+    outputs: string[];
+  }
+> = {
+  dna: {
+    badge: "Modulo 4",
+    title: "DNA sonoro para dar profundidade real ao produto",
+    description:
+      "Esse bloco entra depois do top. Primeiro puxa audio features em lote para montar radar e barras; analise detalhada so quando o usuario clicar em uma musica.",
+    endpoints: ["GET /v1/audio-features?ids={ids}", "GET /v1/audio-analysis/{id}"],
+    outputs: ["Radar de energy, valence, danceability e acousticness", "Analise detalhada por musica, sob demanda"],
+  },
+  playlists: {
+    badge: "Modulo 5",
+    title: "Curadoria que transforma insight em acao",
+    description:
+      "Playlists fazem o projeto parecer produto: ler tops, gerar uma selecao, publicar no Spotify e abrir embed na mesma tela.",
+    endpoints: [
+      "GET /v1/me/playlists?limit=20",
+      "POST /v1/users/{user_id}/playlists",
+      "POST /v1/playlists/{playlist_id}/tracks",
+    ],
+    outputs: ["Gerar playlist Top 20 do mes", "Ouvir a playlist no embed do Spotify"],
+  },
+  recommendations: {
+    badge: "Modulo 6",
+    title: "Recomendacoes com seeds que fazem sentido para o usuario",
+    description:
+      "A melhor base aqui eh o que ja existe no produto: top artists, top tracks e recently played. Isso mantem o modulo leve e mais pessoal.",
+    endpoints: [
+      "GET /v1/recommendations?seed_artists=...&seed_tracks=...&seed_genres=...",
+      "GET /v1/recommendations/available-genre-seeds",
+    ],
+    outputs: ["Lista de recomendacoes pronta para salvar", "Geracao de playlist a partir das recomendacoes"],
+  },
+  discovery: {
+    badge: "Modulo 7",
+    title: "Descoberta para abrir uma segunda camada de uso",
+    description:
+      "Esse modulo vira a aba de exploracao: busca, artista, top tracks do artista e albuns, sem pesar o fluxo principal.",
+    endpoints: [
+      "GET /v1/search?q={q}&type=track,artist,album&limit=10",
+      "GET /v1/artists/{id}",
+      "GET /v1/artists/{id}/top-tracks?market=BR",
+      "GET /v1/artists/{id}/albums?include_groups=album,single&market=BR&limit=20",
+    ],
+    outputs: ["Busca com leitura rapida e links para abrir no Spotify", "Perfil expandido de artista dentro do produto"],
+  },
+};
+
+function ModuleCard({
+  active,
+  preview,
+  description,
+  icon: Icon,
+  onClick,
+  status,
+  title,
+}: {
+  active: boolean;
+  preview: string;
+  description: string;
+  icon: LucideIcon;
+  onClick: () => void;
+  status: "live" | "roadmap";
+  title: string;
 }) {
   return (
-    <Card className={`${surfaceCardClass} min-h-[148px]`}>
-      <CardContent className="space-y-4 px-5 py-5">
-        <div className="flex items-center justify-between">
-          <span className="text-xs uppercase tracking-[0.24em] text-white/42">{label}</span>
-          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
-            <Icon className="size-4" />
+    <button
+      className={`${surfaceCardClass} group text-left transition ${active ? "border-emerald-300/35 bg-[#0c1724]/96" : "hover:border-white/16 hover:bg-[#0b1420]/92"}`}
+      onClick={onClick}
+      type="button"
+    >
+      <div className="flex h-full flex-col gap-5 p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className={`rounded-2xl border border-white/10 bg-white/[0.04] p-3 ${active ? "text-emerald-200" : "text-white/72"}`}>
+            <Icon className="size-5" />
           </div>
+          <Badge
+            className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${
+              status === "live"
+                ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"
+                : "border-white/10 bg-white/[0.03] text-white/62"
+            }`}
+            variant="outline"
+          >
+            {status === "live" ? "ao vivo" : "roadmap"}
+          </Badge>
         </div>
-        <div>
-          <p className="font-display text-3xl tracking-[-0.04em] text-white">{value}</p>
-          <p className="mt-2 text-sm leading-6 text-white/56">{hint}</p>
+        <div className="space-y-2">
+          <h3 className="font-display text-2xl tracking-[-0.04em] text-white">{title}</h3>
+          <p className="text-sm leading-7 text-white/58">{description}</p>
         </div>
-      </CardContent>
-    </Card>
+        <div className={`${subtlePanelClass} mt-auto p-4`}>
+          <p className="text-xs uppercase tracking-[0.22em] text-white/42">Leitura rapida</p>
+          <p className="mt-2 text-sm font-medium text-white">{preview}</p>
+        </div>
+      </div>
+    </button>
   );
 }
 
-function ArtistRow({ artist }: { artist: DashboardData["artists"][number] }) {
+function RoadmapModule({ moduleKey }: { moduleKey: Exclude<ModuleKey, "overview" | "now" | "top"> }) {
+  const copy = ROADMAP_COPY[moduleKey];
+
   return (
-    <a
-      className={`${subtlePanelClass} flex items-center gap-4 p-4 transition hover:border-emerald-300/30 hover:bg-white/[0.05]`}
-      href={artist.spotifyUrl}
-      rel="noreferrer"
-      target="_blank"
-    >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white/72">
-        {artist.rank.toString().padStart(2, "0")}
-      </div>
-      <SpotifyArtwork
-        alt={artist.name}
-        className="h-14 w-14 shrink-0"
-        fallback={artist.name.slice(0, 2)}
-        height={56}
-        sizes="56px"
-        src={artist.imageUrl}
-        width={56}
-      />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-white">{artist.name}</p>
-        <p className="mt-1 truncate text-sm text-white/54">
-          {artist.genres.slice(0, 2).join(" / ") || "Sem genero dominante"}
-        </p>
-      </div>
-      <div className="hidden text-right text-xs text-white/44 md:block">
-        <span className="block text-sm text-white/70">{formatNumber(artist.genres.length)}</span>
-        generos
-      </div>
-    </a>
+    <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+      <Card className={`${surfaceCardClass} overflow-hidden`}>
+        <CardHeader className="border-b border-white/8 pb-6">
+          <div className="flex flex-wrap gap-2">
+            <Badge className="rounded-full border-white/10 bg-white/[0.03] px-3 py-1 text-white/70" variant="outline">
+              {copy.badge}
+            </Badge>
+            <Badge className="rounded-full border-white/10 bg-white/[0.03] px-3 py-1 text-white/70" variant="outline">
+              proxima entrega
+            </Badge>
+          </div>
+          <CardTitle className="font-display text-3xl tracking-[-0.04em] text-white">{copy.title}</CardTitle>
+          <CardDescription className="max-w-3xl text-base leading-7 text-white/60">{copy.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 pt-6">
+          {copy.outputs.map((output) => (
+            <div className={`${subtlePanelClass} p-4`} key={output}>
+              <p className="text-sm font-medium text-white">{output}</p>
+              <p className="mt-2 text-sm leading-6 text-white/56">
+                Estrutura pensada para entrar como modulo isolado, sem pesar o overview do produto.
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+     
+    </div>
   );
 }
 
-function TrackRow({ track }: { track: DashboardData["tracks"][number] }) {
-  return (
-    <a
-      className={`${subtlePanelClass} flex items-center gap-4 p-4 transition hover:border-cyan-300/30 hover:bg-white/[0.05]`}
-      href={track.spotifyUrl}
-      rel="noreferrer"
-      target="_blank"
-    >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white/72">
-        {track.rank.toString().padStart(2, "0")}
-      </div>
-      <SpotifyArtwork
-        alt={track.name}
-        className="h-14 w-14 shrink-0"
-        fallback={track.name.slice(0, 2)}
-        height={56}
-        sizes="56px"
-        src={track.imageUrl}
-        width={56}
-      />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-white">{track.name}</p>
-        <p className="mt-1 truncate text-sm text-white/54">{track.artistNames}</p>
-      </div>
-      <div className="hidden text-right text-xs text-white/44 md:block">
-        <span className="block text-sm text-white/70">{formatDuration(track.durationMs)}</span>
-        duracao
-      </div>
-    </a>
+export default function DashboardClient({ initialRange }: DashboardClientProps) {
+  const router = useRouter();
+  const [activeModule, setActiveModule] = useState<ModuleKey>("overview");
+  const [selectedRange, setSelectedRange] = useState<TimeRange>(initialRange);
+  const [overviewState, setOverviewState] = useState<ModuleState<OverviewData>>(createModuleState());
+  const [nowState, setNowState] = useState<ModuleState<NowData>>(createModuleState());
+  const [topStates, setTopStates] = useState<Record<TimeRange, ModuleState<TopData>>>({
+    short_term: createModuleState<TopData>(),
+    medium_term: createModuleState<TopData>(),
+    long_term: createModuleState<TopData>(),
+  });
+
+  const fetchModuleJson = useCallback(async <T,>(url: string) => {
+    const response = await fetch(url, {
+      cache: "no-store",
+      credentials: "include",
+    });
+
+    if (response.status === 401) {
+      window.location.assign("/");
+      throw new Error("Sua sessao expirou. Conecte o Spotify novamente.");
+    }
+
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(body?.error ?? "Nao foi possivel carregar este modulo.");
+    }
+
+    return (await response.json()) as T;
+  }, []);
+
+  const loadOverview = useCallback(
+    async (force = false) => {
+      if (!force && (overviewState.status === "loading" || overviewState.status === "ready")) {
+        return;
+      }
+
+      setOverviewState((current) => ({
+        ...current,
+        status: "loading",
+        error: null,
+      }));
+
+      try {
+        const data = await fetchModuleJson<OverviewData>("/api/spotify/overview");
+        setOverviewState({
+          status: "ready",
+          data,
+          error: null,
+        });
+      } catch (error) {
+        setOverviewState((current) => ({
+          ...current,
+          status: "error",
+          error: error instanceof Error ? error.message : "Falha ao carregar perfil e contexto.",
+        }));
+      }
+    },
+    [fetchModuleJson, overviewState.status],
   );
-}
 
-export default function DashboardClient({ data }: DashboardClientProps) {
-  const dominantGenreCount = Math.max(...data.favoriteGenres.map((genre) => genre.count), 1);
+  const loadNow = useCallback(
+    async (force = false) => {
+      if (!force && (nowState.status === "loading" || nowState.status === "ready")) {
+        return;
+      }
 
-  const openSpotifyProfile = () => {
-    window.open(data.profile.spotifyUrl, "_blank", "noopener,noreferrer");
+      setNowState((current) => ({
+        ...current,
+        status: "loading",
+        error: null,
+      }));
+
+      try {
+        const data = await fetchModuleJson<NowData>("/api/spotify/now");
+        setNowState({
+          status: "ready",
+          data,
+          error: null,
+        });
+      } catch (error) {
+        setNowState((current) => ({
+          ...current,
+          status: "error",
+          error: error instanceof Error ? error.message : "Falha ao carregar o playback atual.",
+        }));
+      }
+    },
+    [fetchModuleJson, nowState.status],
+  );
+
+  const loadTop = useCallback(
+    async (range: TimeRange, force = false) => {
+      const currentState = topStates[range];
+
+      if (!force && (currentState.status === "loading" || currentState.status === "ready")) {
+        return;
+      }
+
+      setTopStates((current) => ({
+        ...current,
+        [range]: {
+          ...current[range],
+          status: "loading",
+          error: null,
+        },
+      }));
+
+      try {
+        const data = await fetchModuleJson<TopData>(`/api/spotify/top?range=${range}&limit=12`);
+        setTopStates((current) => ({
+          ...current,
+          [range]: {
+            status: "ready",
+            data,
+            error: null,
+          },
+        }));
+      } catch (error) {
+        setTopStates((current) => ({
+          ...current,
+          [range]: {
+            ...current[range],
+            status: "error",
+            error: error instanceof Error ? error.message : "Falha ao carregar os tops.",
+          },
+        }));
+      }
+    },
+    [fetchModuleJson, topStates],
+  );
+
+  useEffect(() => {
+    void loadOverview();
+    void loadNow();
+  }, [loadNow, loadOverview]);
+
+  useEffect(() => {
+    if (activeModule === "top") {
+      void loadTop(selectedRange);
+    }
+  }, [activeModule, loadTop, selectedRange]);
+
+  const handleRangeChange = (range: TimeRange) => {
+    setSelectedRange(range);
+    setActiveModule("top");
+    router.replace(`/dashboard?range=${range}`, { scroll: false });
+    void loadTop(range);
   };
 
   const logout = () => {
     window.location.assign("/api/auth/logout");
   };
 
+  const cardPreviews = useMemo<Record<ModuleKey, string>>(
+    () => ({
+      overview: overviewState.data
+        ? `${overviewState.data.profile.name} - ${overviewState.data.devices.length} devices visiveis`
+        : overviewState.status === "loading"
+          ? "carregando conta e devices..."
+          : "perfil, pais, plano e devices em um bloco leve",
+      now: nowState.data?.current?.track
+        ? `${nowState.data.current.track.name} tocando agora`
+        : nowState.status === "loading"
+          ? "sincronizando now playing..."
+          : "agora tocando + ultimas 20 reproducoes",
+      top: topStates[selectedRange].data?.artists[0]
+        ? `${topStates[selectedRange].data?.artists[0].name} lidera em ${selectedRange}`
+        : topStates[selectedRange].status === "loading"
+          ? "buscando tops sob demanda..."
+          : "abre quando o usuario quiser explorar ranking",
+      dna: "features em lote e analise pesada so ao clicar",
+      playlists: "geracao de playlist e embed no mesmo fluxo",
+      recommendations: "seeds usando top + recent para sugestoes melhores",
+      discovery: "busca e detalhe de artista sem pesar o overview",
+    }),
+    [nowState, overviewState, selectedRange, topStates],
+  );
+
+  const activeTopState = topStates[selectedRange];
+
   return (
     <main className="min-h-screen px-4 py-4 sm:px-6 lg:px-8">
-      <motion.div
-        animate="visible"
-        className="mx-auto flex max-w-7xl flex-col gap-4"
-        initial="hidden"
-        variants={containerVariants}
-      >
-        <div className="grid gap-4 xl:grid-cols-12">
-          <motion.section className="xl:col-span-8" variants={itemVariants}>
-            <Card className={`${surfaceCardClass} h-full`}>
-              <CardHeader className="space-y-5">
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
-                    Seu Spotify
-                  </Badge>
-                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
-                    Ultimos 30 dias
-                  </Badge>
-                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
-                    {data.favoriteGenres.length} generos mapeados
-                  </Badge>
+      <motion.div animate="visible" className="mx-auto flex max-w-7xl flex-col gap-4" initial="hidden" variants={containerVariants}>
+        <motion.section variants={itemVariants}>
+          <Card className={`${surfaceCardClass} overflow-hidden`}>
+            <CardHeader className="border-b border-white/8 pb-6">
+              <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className="rounded-full border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-emerald-100" variant="outline">
+                      dashboard modular
+                    </Badge>
+                    <Badge className="rounded-full border-white/10 bg-white/[0.03] px-3 py-1 text-white/70" variant="outline">
+                      overview + now no primeiro carregamento
+                    </Badge>
+                    <Badge className="rounded-full border-white/10 bg-white/[0.03] px-3 py-1 text-white/70" variant="outline">
+                      top sob demanda
+                    </Badge>
+                  </div>
+                  <div className="space-y-3">
+                    <CardTitle className="font-display text-4xl leading-tight tracking-[-0.05em] text-white sm:text-5xl">
+                      Seu Spotify agora abre como produto: leve no inicio, profundo quando voce quiser.
+                    </CardTitle>
+                    <CardDescription className="max-w-3xl text-base leading-8 text-white/62">
+                      O hub virou uma camada de navegação. Em vez de despejar tudo numa tela so, a entrada mostra poucos cards claros e cada modulo busca dados apenas quando faz sentido.
+                    </CardDescription>
+                  </div>
                 </div>
-                <div className="space-y-3">
-                  <CardTitle className="font-display text-4xl tracking-[-0.04em] text-white sm:text-5xl">
-                    Seu momento musical, organizado em uma grade mais clara.
-                  </CardTitle>
-                  <CardDescription className="max-w-3xl text-base leading-8 text-white/64">
-                    {data.highlights.topArtist
-                      ? `${data.profile.name}, ${data.highlights.topArtist.name} lidera sua fase atual.`
-                      : `${data.profile.name}, seus habitos de escuta ja estao prontos para explorar.`} Aqui voce acompanha artistas, faixas e sinais do seu replay sem depender de indicadores pouco confiaveis.
-                  </CardDescription>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-3 md:grid-cols-3">
-                <div className={`${subtlePanelClass} p-4`}>
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/42">Genero dominante</p>
-                  <p className="mt-3 text-lg font-medium text-white">{data.stats.dominantGenre}</p>
-                  <p className="mt-2 text-sm text-white/54">O genero que mais aparece no seu recorte recente.</p>
-                </div>
-                <div className={`${subtlePanelClass} p-4`}>
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/42">Artista em alta</p>
-                  <p className="mt-3 text-lg font-medium text-white">
-                    {data.highlights.topArtist?.name ?? "Sem destaque"}
-                  </p>
-                  <p className="mt-2 text-sm text-white/54">O nome com maior presenca entre seus favoritos do momento.</p>
-                </div>
-                <div className={`${subtlePanelClass} p-4`}>
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/42">Faixa do momento</p>
-                  <p className="mt-3 truncate text-lg font-medium text-white">
-                    {data.highlights.topTrack?.name ?? "Sem destaque"}
-                  </p>
-                  <p className="mt-2 text-sm text-white/54">
-                    Duracao media do ranking: {formatDuration(data.stats.averageTrackDuration)}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
 
-          <motion.section className="xl:col-span-4" variants={itemVariants}>
-            <Card className={`${surfaceCardClass} h-full`}>
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <SpotifyArtwork
-                      alt={data.profile.name}
-                      className="h-16 w-16 shrink-0"
-                      fallback={data.profile.name.slice(0, 2)}
-                      height={64}
-                      sizes="64px"
-                      src={data.profile.avatarUrl}
-                      width={64}
-                    />
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.24em] text-white/42">Conta conectada</p>
-                      <CardTitle className="mt-2 font-display text-2xl text-white">{data.profile.name}</CardTitle>
-                      <CardDescription className="mt-1 text-sm text-white/56">
-                        {formatNumber(data.profile.followers)} seguidores
-                      </CardDescription>
-                    </div>
+                <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[360px]">
+                  <div className={`${subtlePanelClass} p-4`}>
+                    <p className="text-xs uppercase tracking-[0.22em] text-white/42">Modulos ao vivo</p>
+                    <p className="mt-3 font-display text-3xl tracking-[-0.04em] text-white">3</p>
+                    <p className="mt-2 text-sm text-white/56">Perfil, Agora e Top.</p>
                   </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        className="rounded-lg border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
-                        size="icon-sm"
-                        variant="outline"
-                      >
-                        <ChevronDown className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      className="rounded-lg border-white/10 bg-[#101724] text-white"
-                    >
-                      <DropdownMenuItem className="rounded-md" onSelect={openSpotifyProfile}>
-                        <ExternalLink className="size-4" />
-                        Abrir perfil no Spotify
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="bg-white/8" />
-                      <DropdownMenuItem className="rounded-md text-red-300 focus:text-red-200" onSelect={logout}>
-                        <LogOut className="size-4" />
-                        Desconectar
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                <div className={`${subtlePanelClass} grid grid-cols-2 gap-3 p-4`}>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-white/42">Plano</p>
-                    <p className="mt-2 text-sm font-medium text-white">{capitalize(data.profile.plan)}</p>
+                  <div className={`${subtlePanelClass} p-4`}>
+                    <p className="text-xs uppercase tracking-[0.22em] text-white/42">Roadmap pronto</p>
+                    <p className="mt-3 font-display text-3xl tracking-[-0.04em] text-white">4</p>
+                    <p className="mt-2 text-sm text-white/56">DNA, playlists, recomendacoes e descoberta.</p>
                   </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.22em] text-white/42">Mercado</p>
-                    <p className="mt-2 text-sm font-medium text-white">{data.profile.country}</p>
+                  <div className={`${subtlePanelClass} p-4`}>
+                    <p className="text-xs uppercase tracking-[0.22em] text-white/42">Auth</p>
+                    <p className="mt-3 text-lg font-medium text-white">Scopes ampliados</p>
+                    <p className="mt-2 text-sm text-white/56">Playback e playlists ja preparados.</p>
                   </div>
                 </div>
-                <div className={`${subtlePanelClass} flex items-center gap-3 p-4`}>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
-                    <Globe2 className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Perfil sincronizado</p>
-                    <p className="mt-1 text-sm text-white/56">Os dados exibidos refletem sua conta conectada agora.</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1 rounded-lg bg-emerald-400 text-slate-950 hover:bg-emerald-300"
-                    onClick={openSpotifyProfile}
-                  >
-                    Abrir perfil
-                  </Button>
-                  <Button
-                    className="rounded-lg border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.06]"
-                    onClick={logout}
-                    variant="outline"
-                  >
-                    Sair
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
-        </div>
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row">
+              <Button className="rounded-full bg-white text-slate-950 hover:bg-white/90" onClick={() => setActiveModule("overview")}>
+                Abrir overview
+              </Button>
+              <Button className="rounded-full border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.07]" onClick={() => setActiveModule("top")} variant="outline">
+                Explorar tops
+              </Button>
+              <Button className="rounded-full border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.07]" onClick={() => {
+                void loadOverview(true);
+                void loadNow(true);
+                if (activeModule === "top") {
+                  void loadTop(selectedRange, true);
+                }
+              }} variant="outline">
+                <RefreshCw className="size-4" />
+                Atualizar
+              </Button>
+              <Button className="rounded-full border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.07]" onClick={logout} variant="outline">
+                <LogOut className="size-4" />
+                Desconectar
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.section>
 
         <motion.section variants={itemVariants}>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-              hint="Quantidade de artistas retornados no seu ranking principal."
-              icon={Users}
-              label="Artistas no ranking"
-              value={formatNumber(data.artists.length)}
-            />
-            <MetricCard
-              hint="Quantidade de faixas retornadas no seu recorte recente."
-              icon={Music2}
-              label="Faixas no ranking"
-              value={formatNumber(data.tracks.length)}
-            />
-            <MetricCard
-              hint="Total de generos identificados a partir dos artistas mais ouvidos."
-              icon={Sparkles}
-              label="Generos mapeados"
-              value={formatNumber(data.stats.genreCount)}
-            />
-            <MetricCard
-              hint="Tempo medio das faixas retornadas no seu ranking."
-              icon={Clock3}
-              label="Duracao media"
-              value={formatDuration(data.stats.averageTrackDuration)}
-            />
+            {MODULE_CARDS.map((module) => (
+              <ModuleCard
+                active={activeModule === module.key}
+                description={module.description}
+                icon={module.icon}
+                key={module.key}
+                onClick={() => {
+                  setActiveModule(module.key);
+                  if (module.key === "top") {
+                    void loadTop(selectedRange);
+                  }
+                }}
+                preview={cardPreviews[module.key]}
+                status={module.status}
+                title={module.title}
+              />
+            ))}
           </div>
         </motion.section>
 
-        <div className="grid gap-4 xl:grid-cols-12">
-          <motion.section className="xl:col-span-7" variants={itemVariants}>
-            <Card className={`${contentCardClass} h-[480px] md:h-[540px]`}>
-              <Tabs className="flex h-full flex-col" defaultValue="artists">
-                <CardHeader className="border-b border-white/8 px-5 py-5">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                    <div>
-                      <CardTitle className="font-display text-2xl text-white">Ranking principal</CardTitle>
-                      <CardDescription className="mt-1 text-white/58">
-                        Alterne entre artistas e faixas mantendo a mesma area de leitura.
-                      </CardDescription>
-                    </div>
-                    <TabsList className="rounded-lg border border-white/8 bg-white/[0.03] p-1">
-                      <TabsTrigger
-                        className="rounded-md px-4 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white"
-                        value="artists"
-                      >
-                        <Users className="size-4" />
-                        Artistas
-                      </TabsTrigger>
-                      <TabsTrigger
-                        className="rounded-md px-4 data-[state=active]:bg-white/[0.08] data-[state=active]:text-white"
-                        value="tracks"
-                      >
-                        <Music2 className="size-4" />
-                        Faixas
-                      </TabsTrigger>
-                    </TabsList>
-                  </div>
-                </CardHeader>
+        <motion.section variants={itemVariants}>
+          {activeModule === "overview" ? <OverviewModule onRetry={() => void loadOverview(true)} state={overviewState} /> : null}
+          {activeModule === "now" ? <NowModule onRetry={() => void loadNow(true)} state={nowState} /> : null}
+          {activeModule === "top" ? (
+            <TopModule
+              onRangeChange={handleRangeChange}
+              onRetry={() => void loadTop(selectedRange, true)}
+              selectedRange={selectedRange}
+              state={activeTopState}
+            />
+          ) : null}
+          {activeModule === "dna" || activeModule === "playlists" || activeModule === "recommendations" || activeModule === "discovery" ? (
+            <RoadmapModule moduleKey={activeModule} />
+          ) : null}
+        </motion.section>
 
-                <CardContent className="flex-1 overflow-hidden px-0 py-0">
-                  <TabsContent className="mt-0 h-full" value="artists">
-                    <div className="panel-scroll h-full space-y-3 overflow-y-auto px-5 py-4">
-                      {data.artists.map((artist) => (
-                        <ArtistRow artist={artist} key={artist.id} />
-                      ))}
-                    </div>
-                  </TabsContent>
-                  <TabsContent className="mt-0 h-full" value="tracks">
-                    <div className="panel-scroll h-full space-y-3 overflow-y-auto px-5 py-4">
-                      {data.tracks.map((track) => (
-                        <TrackRow key={track.id} track={track} />
-                      ))}
-                    </div>
-                  </TabsContent>
+        <motion.section variants={itemVariants}>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {[
+              "Overview e Now entram primeiro para a experiencia ficar viva sem pesar o carregamento.",
+              "Top virou modulo independente e so busca quando o usuario abre a area.",
+              "Os proximos blocos ja tem contrato de API definido para evoluir sem reescrever o hub.",
+            ].map((text, index) => (
+              <Card className={surfaceCardClass} key={text}>
+                <CardContent className="flex items-center gap-3 px-5 py-5 text-sm leading-6 text-white/62">
+                  {index === 0 ? (
+                    <LayoutPanelLeft className="size-4 text-emerald-300" />
+                  ) : index === 1 ? (
+                    activeTopState.status === "loading" ? <LoaderCircle className="size-4 animate-spin text-cyan-300" /> : <BarChart3 className="size-4 text-cyan-300" />
+                  ) : (
+                    <Sparkles className="size-4 text-violet-300" />
+                  )}
+                  {text}
                 </CardContent>
-              </Tabs>
-            </Card>
-          </motion.section>
-
-          <motion.section className="xl:col-span-5" variants={itemVariants}>
-            <Card className={`${contentCardClass} h-[480px] md:h-[540px]`}>
-              <CardHeader className="border-b border-white/8 px-5 py-5">
-                <CardTitle className="font-display text-2xl text-white">Generos em destaque</CardTitle>
-                <CardDescription className="text-white/58">
-                  Uma leitura compacta dos generos que mais aparecem na sua escuta recente.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="panel-scroll flex-1 space-y-3 overflow-y-auto px-5 py-4">
-                {data.favoriteGenres.map((genre) => (
-                  <div className={`${subtlePanelClass} space-y-3 p-4`} key={genre.name}>
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-white">{genre.name}</p>
-                      <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/62" variant="outline">
-                        {genre.count}
-                      </Badge>
-                    </div>
-                    <div className="h-2 rounded-full bg-white/[0.05]">
-                      <div
-                        className="h-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400"
-                        style={{
-                          width: `${Math.max((genre.count / dominantGenreCount) * 100, 18)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-
-                <div className={`${subtlePanelClass} p-4`}>
-                  <p className="text-xs uppercase tracking-[0.24em] text-white/42">Leitura da fase atual</p>
-                  <p className="mt-3 text-sm leading-7 text-white/58">
-                    Seu recorte recente combina variedade e repeticao. Os generos acima mostram onde sua escuta esta mais concentrada neste momento.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
-        </div>
-
-        <div className="grid gap-4 xl:grid-cols-12">
-          <motion.section className="xl:col-span-7" variants={itemVariants}>
-            <Card className={`${contentCardClass} h-[360px]`}>
-              <CardHeader className="border-b border-white/8 px-5 py-5">
-                <CardTitle className="font-display text-2xl text-white">Faixa do momento</CardTitle>
-                <CardDescription className="text-white/58">
-                  A musica que mais representa sua fase atual no Spotify.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex h-full flex-col gap-5 px-5 py-5 md:flex-row">
-                {data.highlights.topTrack ? (
-                  <>
-                    <SpotifyArtwork
-                      alt={data.highlights.topTrack.name}
-                      className="h-44 w-full shrink-0 md:h-full md:w-56"
-                      fallback={data.highlights.topTrack.name.slice(0, 2)}
-                      height={320}
-                      sizes="(max-width: 768px) 100vw, 224px"
-                      src={data.highlights.topTrack.imageUrl}
-                      width={320}
-                    />
-                    <div className="flex min-w-0 flex-1 flex-col justify-between">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.24em] text-white/42">Em destaque agora</p>
-                        <h3 className="mt-3 font-display text-3xl tracking-[-0.04em] text-white">
-                          {data.highlights.topTrack.name}
-                        </h3>
-                        <p className="mt-2 text-sm text-white/58">{data.highlights.topTrack.artistName}</p>
-                      </div>
-
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className={`${subtlePanelClass} p-4`}>
-                          <p className="text-xs uppercase tracking-[0.22em] text-white/42">Album</p>
-                          <p className="mt-2 text-lg font-medium text-white">{data.highlights.topTrack.album}</p>
-                        </div>
-                        <div className={`${subtlePanelClass} p-4`}>
-                          <p className="text-xs uppercase tracking-[0.22em] text-white/42">Duracao</p>
-                          <p className="mt-2 text-lg font-medium text-white">
-                            {formatDuration(data.highlights.topTrack.durationMs)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-white/58">
-                    Ainda nao ha dados suficientes para destacar uma faixa.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.section>
-
-          <motion.section className="xl:col-span-5" variants={itemVariants}>
-            <Card className={`${contentCardClass} h-[360px]`}>
-              <CardHeader className="border-b border-white/8 px-5 py-5">
-                <CardTitle className="font-display text-2xl text-white">Resumo da fase</CardTitle>
-                <CardDescription className="text-white/58">
-                  Um recorte rapido para entender o que mais pesa na sua escuta recente.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="panel-scroll flex-1 space-y-3 overflow-y-auto px-5 py-4">
-                <div className={`${subtlePanelClass} flex items-start gap-3 p-4`}>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-cyan-300">
-                    <Users className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Artista com mais presenca</p>
-                    <p className="mt-1 text-sm text-white/56">
-                      {data.highlights.topArtist?.name ?? "Sem destaque no momento"}
-                    </p>
-                  </div>
-                </div>
-                <div className={`${subtlePanelClass} flex items-start gap-3 p-4`}>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
-                    <Sparkles className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Genero mais recorrente</p>
-                    <p className="mt-1 text-sm text-white/56">{data.stats.dominantGenre}</p>
-                  </div>
-                </div>
-                <div className={`${subtlePanelClass} flex items-start gap-3 p-4`}>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-orange-300">
-                    <Disc3 className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Faixa mais representativa</p>
-                    <p className="mt-1 text-sm text-white/56">
-                      {data.highlights.topTrack?.name ?? "Sem destaque no momento"}
-                    </p>
-                  </div>
-                </div>
-                <div className={`${subtlePanelClass} flex items-start gap-3 p-4`}>
-                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-violet-300">
-                    <LayoutGrid className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Leitura geral</p>
-                    <p className="mt-1 text-sm leading-7 text-white/56">
-                      Seu painel mostra um equilibrio entre repeticao e variedade, com foco nos artistas, nas faixas e nos generos que mais aparecem no seu replay.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
-        </div>
+              </Card>
+            ))}
+          </div>
+        </motion.section>
       </motion.div>
     </main>
   );

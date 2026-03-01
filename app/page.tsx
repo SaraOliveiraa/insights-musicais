@@ -2,77 +2,28 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, BarChart3, Disc3, LayoutDashboard, ListMusic, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  AudioWaveform,
+  Compass,
+  LayoutPanelLeft,
+  ListMusic,
+  LockKeyhole,
+  Radio,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-
-const heroHighlights = [
-  {
-    title: "Visao geral imediata",
-    description: "Abra o painel e veja em segundos o que dominou sua escuta recente.",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Listas organizadas",
-    description: "Artistas e faixas aparecem em blocos alinhados, simples de comparar e navegar.",
-    icon: ListMusic,
-  },
-  {
-    title: "Conta conectada",
-    description: "Acesse seus dados do Spotify de forma segura e com leitura clara.",
-    icon: ShieldCheck,
-  },
-];
-
-const insightItems = [
-  {
-    title: "Top artistas",
-    description: "Veja quem mais apareceu na sua fase atual.",
-    icon: UserRound,
-  },
-  {
-    title: "Top faixas",
-    description: "Entenda o que mais voltou para o replay.",
-    icon: Disc3,
-  },
-  {
-    title: "Generos em destaque",
-    description: "Perceba se sua escuta esta mais focada ou diversa.",
-    icon: Sparkles,
-  },
-  {
-    title: "Resumo pessoal",
-    description: "Tenha uma leitura direta do seu momento musical.",
-    icon: BarChart3,
-  },
-];
-
-const onboardingSteps = [
-  {
-    step: "01",
-    title: "Conecte sua conta",
-    description: "Entre com o Spotify para liberar seus dados de escuta.",
-  },
-  {
-    step: "02",
-    title: "Abra o painel",
-    description: "Acesse uma grade organizada com artistas, faixas e generos.",
-  },
-  {
-    step: "03",
-    title: "Explore sua rotina",
-    description: "Descubra o que define sua fase musical com mais contexto.",
-  },
-];
 
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.06,
+      staggerChildren: 0.06,
+      delayChildren: 0.05,
     },
   },
 };
@@ -91,131 +42,241 @@ const itemVariants = {
   },
 };
 
-const surfaceCardClass = "rounded-xl border-white/10 bg-[#0d1420]/88 shadow-[0_14px_34px_rgba(2,6,23,0.24)] backdrop-blur-sm";
+const surfaceCardClass = "rounded-[28px] border-white/10 bg-[#08111d]/88 shadow-[0_24px_80px_rgba(2,8,23,0.35)] backdrop-blur-md";
+const subtlePanelClass = "rounded-2xl border border-white/8 bg-white/[0.035]";
 
-const subtlePanelClass = "rounded-lg border border-white/8 bg-white/[0.03]";
+const modules = [
+  {
+    title: "Perfil & Contexto",
+    description: "Conta conectada, pais, plano, devices e status do player em um bloco leve.",
+    icon: LayoutPanelLeft,
+    status: "Ao vivo",
+  },
+  {
+    title: "Agora",
+    description: "Now playing e ultimas 20 reproducoes para dar vida ao app logo na entrada.",
+    icon: Radio,
+    status: "Ao vivo",
+  },
+  {
+    title: "Top",
+    description: "Top artists e top tracks com cache por periodo e carregamento sob demanda.",
+    icon: Sparkles,
+    status: "Ao vivo",
+  },
+  {
+    title: "DNA Sonoro",
+    description: "Audio features e analise sob demanda para aprofundar o comportamento musical.",
+    icon: AudioWaveform,
+    status: "Roadmap",
+  },
+  {
+    title: "Playlists",
+    description: "Geracao automatica de playlists para transformar insight em acao.",
+    icon: ListMusic,
+    status: "Roadmap",
+  },
+  {
+    title: "Descoberta",
+    description: "Busca, detalhe de artista e exploracao sem pesar o overview principal.",
+    icon: Compass,
+    status: "Roadmap",
+  },
+];
+
+const steps = [
+  {
+    step: "01",
+    title: "Conecte o Spotify",
+    description: "OAuth com escopos claros para perfil, playback, tops e playlists.",
+  },
+  {
+    step: "02",
+    title: "Entre no hub modular",
+    description: "O dashboard abre leve e deixa os modulos profundos para o momento certo.",
+  },
+  {
+    step: "03",
+    title: "Ative os blocos que importam",
+    description: "Overview, agora, top e futuras automacoes entram sob demanda.",
+  },
+];
 
 export default function HomePage() {
   return (
     <main className="min-h-screen px-4 py-4 sm:px-6 lg:px-8">
       <motion.div animate="visible" className="mx-auto flex max-w-7xl flex-col gap-4" initial="hidden" variants={containerVariants}>
-      
-
-        <div className="grid gap-4 lg:grid-cols-12">
-          <motion.section className="lg:col-span-7" variants={itemVariants}>
-            <Card className={`${surfaceCardClass} h-full`}>
-              <CardHeader className="space-y-4">
+        <motion.section variants={itemVariants}>
+          <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+            <Card className={`${surfaceCardClass} overflow-hidden`}>
+              <CardHeader className="space-y-5 border-b border-white/8 pb-6">
                 <div className="flex flex-wrap gap-2">
-                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
-                    Top artistas
+                  <Badge className="rounded-full border-emerald-300/20 bg-emerald-400/10 px-3 py-1 text-emerald-100" variant="outline">
+                    Insights Musicais
                   </Badge>
-                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
-                    Top faixas
-                  </Badge>
-                  <Badge className="rounded-md border-white/10 bg-white/[0.03] text-white/70" variant="outline">
-                    Generos em alta
+                  <Badge className="rounded-full border-white/10 bg-white/[0.03] px-3 py-1 text-white/70" variant="outline">
+                    produto modular para Spotify
                   </Badge>
                 </div>
                 <div className="space-y-4">
-                  <CardTitle className="font-display text-4xl leading-tight tracking-[-0.04em] text-white sm:text-5xl">Seu Spotify, organizado em um painel que faz sentido.</CardTitle>
-                  <CardDescription className="max-w-2xl text-base leading-8 text-white/64">
-                    Conecte sua conta e acompanhe artistas, faixas e generos que mais aparecem na sua rotina com uma interface mais alinhada, clara e preparada para uso continuo.
+                  <CardTitle className="font-display text-4xl leading-tight tracking-[-0.05em] text-white sm:text-6xl">
+                    Seu Spotify em uma plataforma que abre leve e aprofunda so quando voce quiser.
+                  </CardTitle>
+                  <CardDescription className="max-w-3xl text-base leading-8 text-white/62">
+                    Em vez de uma tela unica carregada de cards, o produto entra com contexto, now playing e um hub de modulos. Depois disso, tops, DNA, playlists e descoberta aparecem sob demanda.
                   </CardDescription>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 pt-6">
                 <div className="flex flex-col gap-3 sm:flex-row">
-                  <Button asChild className="h-10 rounded-lg bg-emerald-400 px-5 text-slate-950 hover:bg-emerald-300">
+                  <Button asChild className="h-11 rounded-full bg-white px-6 text-slate-950 hover:bg-white/90">
                     <Link href="/api/auth/login">
-                      Conectar Spotify
+                      Conectar com Spotify
                       <ArrowRight className="size-4" />
                     </Link>
                   </Button>
-                  <Button asChild className="h-10 rounded-lg border-white/10 bg-white/[0.03] px-5 text-white hover:bg-white/[0.06]" variant="outline">
-                    <Link href="/dashboard">Ver painel</Link>
+                  <Button asChild className="h-11 rounded-full border-white/10 bg-white/[0.03] px-6 text-white hover:bg-white/[0.07]" variant="outline">
+                    <Link href="/dashboard">Ver hub modular</Link>
                   </Button>
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
-                  {heroHighlights.map((item) => {
-                    const Icon = item.icon;
-
-                    return (
-                      <div className={`${subtlePanelClass} p-4`} key={item.title}>
-                        <div className="mb-4 inline-flex rounded-lg border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
-                          <Icon className="size-4" />
-                        </div>
-                        <h3 className="font-medium text-white">{item.title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-white/58">{item.description}</p>
-                      </div>
-                    );
-                  })}
+                  {[
+                    "Entrada leve com contexto e now playing",
+                    "Modulos profundos ativados so quando o usuario abre",
+                    "Base pronta para playlists, recomendacoes e descoberta",
+                  ].map((text) => (
+                    <div className={`${subtlePanelClass} p-4`} key={text}>
+                      <p className="text-sm leading-7 text-white/62">{text}</p>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
-          </motion.section>
 
-          <div className="grid gap-4 lg:col-span-5 lg:auto-rows-fr">
-            <motion.section variants={itemVariants}>
-              <Card className={`${surfaceCardClass} h-full`}>
-                <CardHeader>
-                  <CardTitle className="font-display text-2xl text-white">O que voce encontra</CardTitle>
-                  <CardDescription className="text-white/60">Um painel direto para acompanhar sua fase musical sem excesso de informacao.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-3">
-                  {insightItems.map((item) => {
-                    const Icon = item.icon;
-
-                    return (
-                      <div className={`${subtlePanelClass} flex items-start gap-3 p-4`} key={item.title}>
-                        <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-cyan-300">
-                          <Icon className="size-4" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-white">{item.title}</h3>
-                          <p className="mt-1 text-sm leading-6 text-white/56">{item.description}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            </motion.section>
-
-            <motion.section variants={itemVariants}>
-              <Card className={`${surfaceCardClass} h-full`}>
-                <CardHeader>
-                  <CardTitle className="font-display text-2xl text-white">Como funciona</CardTitle>
-                  <CardDescription className="text-white/60">Uma experiencia simples para entrar, ver seus dados e explorar sua rotina de escuta.</CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-3">
-                  {onboardingSteps.map((item) => (
-                    <div className={`${subtlePanelClass} flex gap-4 p-4`} key={item.step}>
-                      <div className="font-display text-lg text-white/42">{item.step}</div>
-                      <div>
-                        <h3 className="text-sm font-medium text-white">{item.title}</h3>
-                        <p className="mt-1 text-sm leading-6 text-white/56">{item.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.section>
+            <Card className={`${surfaceCardClass} overflow-hidden`}>
+              <CardHeader className="border-b border-white/8 pb-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="font-display text-3xl tracking-[-0.04em] text-white">Conexao com cara de produto</CardTitle>
+                    <CardDescription className="mt-2 text-base leading-7 text-white/60">
+                      A primeira impressao agora explica o valor do app, o que sera lido da conta e por que isso melhora a experiencia.
+                    </CardDescription>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-emerald-200">
+                    <LockKeyhole className="size-5" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-6">
+                <div className={`${subtlePanelClass} flex items-start gap-3 p-4`}>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
+                    <ShieldCheck className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Escopos preparados</p>
+                    <p className="mt-1 text-sm leading-6 text-white/56">Perfil, playback, historico recente, tops e playlists privadas.</p>
+                  </div>
+                </div>
+                <div className={`${subtlePanelClass} flex items-start gap-3 p-4`}>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-2 text-cyan-300">
+                    <Radio className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Entrada viva</p>
+                    <p className="mt-1 text-sm leading-6 text-white/56">Assim que a conta conecta, overview e now playing contam uma historia imediatamente.</p>
+                  </div>
+                </div>
+                <div className={`${subtlePanelClass} flex items-start gap-3 p-4`}>
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-2 text-violet-300">
+                    <Sparkles className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">Arquitetura pronta para evoluir</p>
+                    <p className="mt-1 text-sm leading-6 text-white/56">Cada modulo fica em rota propria de API e entra no momento certo.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </div>
+        </motion.section>
 
         <motion.section variants={itemVariants}>
-          <div className="grid gap-4 lg:grid-cols-3">
-            {["Layout mais limpo para leitura rapida", "Componentes alinhados para desktop e mobile", "Dados reais do Spotify em uma experiencia organizada"].map((text, index) => (
-              <Card className={surfaceCardClass} key={text}>
-                <CardContent className="flex h-full items-center gap-3 px-5 py-5">
-                  <div className="rounded-lg border border-white/10 bg-white/[0.04] p-2 text-emerald-300">
-                    {index === 0 ? <LayoutDashboard className="size-4" /> : index === 1 ? <Sparkles className="size-4" /> : <BarChart3 className="size-4" />}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {modules.map((module) => {
+              const Icon = module.icon;
+
+              return (
+                <Card className={surfaceCardClass} key={module.title}>
+                  <CardContent className="space-y-4 px-5 py-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-white/72">
+                        <Icon className="size-5" />
+                      </div>
+                      <Badge
+                        className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] ${
+                          module.status === "Ao vivo"
+                            ? "border-emerald-300/20 bg-emerald-400/10 text-emerald-100"
+                            : "border-white/10 bg-white/[0.03] text-white/62"
+                        }`}
+                        variant="outline"
+                      >
+                        {module.status}
+                      </Badge>
+                    </div>
+                    <div>
+                      <h3 className="font-display text-2xl tracking-[-0.04em] text-white">{module.title}</h3>
+                      <p className="mt-2 text-sm leading-7 text-white/58">{module.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </motion.section>
+
+        <motion.section variants={itemVariants}>
+          <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+            <Card className={`${surfaceCardClass} overflow-hidden`}>
+              <CardHeader className="border-b border-white/8 pb-6">
+                <CardTitle className="font-display text-3xl tracking-[-0.04em] text-white">Como o fluxo ficou melhor</CardTitle>
+                <CardDescription className="text-base leading-7 text-white/60">
+                  Menos cara de prototipo e mais cara de plataforma: narrativa clara, conexao segura e profundidade distribuida em modulos.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 pt-6">
+                {steps.map((step) => (
+                  <div className={`${subtlePanelClass} flex gap-4 p-4`} key={step.step}>
+                    <div className="font-display text-xl text-white/42">{step.step}</div>
+                    <div>
+                      <p className="text-sm font-medium text-white">{step.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-white/56">{step.description}</p>
+                    </div>
                   </div>
-                  <p className="text-sm leading-6 text-white/66">{text}</p>
-                </CardContent>
-              </Card>
-            ))}
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card className={`${surfaceCardClass} overflow-hidden`}>
+              <CardHeader className="border-b border-white/8 pb-6">
+                <CardTitle className="font-display text-3xl tracking-[-0.04em] text-white">O que muda na pratica</CardTitle>
+                <CardDescription className="text-base leading-7 text-white/60">
+                  O produto ja comunica a estrategia modular logo na home, antes mesmo do usuario conectar a conta.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-3 pt-6 md:grid-cols-2">
+                {[
+                  "Landing com proposta de valor forte e foco no uso real.",
+                  "CTA principal de conexao apoiado por explicacao de escopos.",
+                  "Preview dos modulos para o usuario entender o que vai ganhar.",
+                  "Transicao mais clara entre conectar, entrar no hub e explorar dados.",
+                ].map((text) => (
+                  <div className={`${subtlePanelClass} p-4`} key={text}>
+                    <p className="text-sm leading-7 text-white/58">{text}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </div>
         </motion.section>
       </motion.div>

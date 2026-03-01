@@ -1,10 +1,20 @@
 import { NextResponse } from "next/server";
-import { generateCodeVerifier, generateCodeChallenge, generateState } from "@/lib/pkce";
+import { generateCodeChallenge, generateCodeVerifier, generateState } from "@/lib/pkce";
+
+const SPOTIFY_SCOPES = [
+  "user-top-read",
+  "user-read-email",
+  "user-read-private",
+  "user-read-playback-state",
+  "user-read-currently-playing",
+  "user-read-recently-played",
+  "playlist-read-private",
+  "playlist-modify-private",
+].join(" ");
 
 export async function GET() {
   const clientId = process.env.SPOTIFY_CLIENT_ID!;
   const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}${process.env.SPOTIFY_REDIRECT_PATH}`;
-  const scope = "user-top-read user-read-email";
 
   const codeVerifier = generateCodeVerifier();
   const codeChallenge = generateCodeChallenge(codeVerifier);
@@ -14,17 +24,14 @@ export async function GET() {
     response_type: "code",
     client_id: clientId,
     redirect_uri: redirectUri,
-    scope,
+    scope: SPOTIFY_SCOPES,
     state,
     code_challenge_method: "S256",
     code_challenge: codeChallenge,
   });
 
-  const res = NextResponse.redirect(
-    `https://accounts.spotify.com/authorize?${params.toString()}`
-  );
+  const res = NextResponse.redirect(`https://accounts.spotify.com/authorize?${params.toString()}`);
 
-  // guarda verifier e state em cookies HTTP-only
   res.cookies.set("sp_code_verifier", codeVerifier, {
     httpOnly: true,
     sameSite: "lax",
